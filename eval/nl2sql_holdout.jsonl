@@ -1,0 +1,15 @@
+{"q": "데이터가 총 몇 개 있어?", "sql": "SELECT COUNT(*) FROM machining"}
+{"q": "설비 고장은 모두 몇 건 발생했나요?", "sql": "SELECT COUNT(*) FROM machining WHERE machine_failure = 1"}
+{"q": "불량률 알려줘", "sql": "SELECT AVG(machine_failure) FROM machining"}
+{"q": "품질 등급별로 평균 토크를 비교해줘", "sql": "SELECT product_type, AVG(torque_nm) FROM machining GROUP BY product_type"}
+{"q": "공정 온도의 최댓값", "sql": "SELECT MAX(process_temp_k) FROM machining"}
+{"q": "L 등급 고장률", "sql": "SELECT AVG(machine_failure) FROM machining WHERE product_type = 'L'"}
+{"q": "회전속도가 2000 이상인 데이터 개수", "sql": "SELECT COUNT(*) FROM machining WHERE rpm >= 2000"}
+{"q": "토크 30 미만일 때 평균 회전 속도", "sql": "SELECT AVG(rpm) FROM machining WHERE torque_nm < 30"}
+{"q": "공구 마모 고장 건수", "sql": "SELECT COUNT(*) FROM machining WHERE twf = 1"}
+{"q": "방열 고장이 발생한 경우의 평균 공기온도", "sql": "SELECT AVG(air_temp_k) FROM machining WHERE hdf = 1"}
+{"q": "회전속도가 가장 낮은 3건", "sql": "SELECT * FROM machining ORDER BY rpm ASC LIMIT 3"}
+{"q": "등급별 전력 고장 건수", "sql": "SELECT product_type, SUM(pwf) FROM machining GROUP BY product_type"}
+{"q": "H 등급 중 공구마모 150분 초과 건수", "sql": "SELECT COUNT(*) FROM machining WHERE product_type = 'H' AND tool_wear_min > 150"}
+{"q": "정상인 경우 평균 토크", "sql": "SELECT AVG(torque_nm) FROM machining WHERE machine_failure = 0"}
+{"q": "토크 최소값과 최대값", "sql": "SELECT MIN(torque_nm), MAX(torque_nm) FROM machining"}

@@ -1,0 +1,19 @@
+{"q": "oht17 지금 상태 어때?", "intent": "equipment_status"}
+{"q": "AGV 18호기 현재 위험도 알려줘", "intent": "equipment_status"}
+{"q": "oht 18번 이상 있어?", "intent": "equipment_status"}
+{"q": "승인 대기 중인 작업지시 보여줘", "intent": "work_orders"}
+{"q": "agv17 작업지시 이력", "intent": "work_orders"}
+{"q": "발행된 워크오더 목록", "intent": "work_orders"}
+{"q": "브레이크 패드 재고 얼마나 남았어?", "intent": "parts"}
+{"q": "DRV-400 부품 재고 확인", "intent": "parts"}
+{"q": "부품 재고 현황", "intent": "parts"}
+{"q": "과전류 원인이 뭐야?", "intent": "knowledge"}
+{"q": "LOTO 절차 알려줘", "intent": "knowledge"}
+{"q": "OHT 가이드 롤러 교체 주기는?", "intent": "knowledge"}
+{"q": "위험 단계 대응 시간은?", "intent": "knowledge"}
+{"q": "등급별 고장률 보여줘", "intent": "analytics"}
+{"q": "평균 토크는 얼마야?", "intent": "analytics"}
+{"q": "과부하 고장은 몇 건이야?", "intent": "analytics"}
+{"q": "공구마모가 200분 이상일 때 불량률", "intent": "analytics"}
+{"q": "방열 고장의 원인은?", "intent": "knowledge"}
+{"q": "정비보수 계획서에 들어갈 항목은?", "intent": "knowledge"}

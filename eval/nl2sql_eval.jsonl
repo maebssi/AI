@@ -1,0 +1,25 @@
+{"q": "전체 데이터는 몇 건이야?", "sql": "SELECT COUNT(*) FROM machining"}
+{"q": "고장이 발생한 건수는?", "sql": "SELECT COUNT(*) FROM machining WHERE machine_failure = 1"}
+{"q": "전체 고장률은 얼마야?", "sql": "SELECT AVG(machine_failure) FROM machining"}
+{"q": "제품 등급별 고장률을 보여줘", "sql": "SELECT product_type, AVG(machine_failure) FROM machining GROUP BY product_type"}
+{"q": "타입별 건수는?", "sql": "SELECT product_type, COUNT(*) FROM machining GROUP BY product_type"}
+{"q": "평균 토크는?", "sql": "SELECT AVG(torque_nm) FROM machining"}
+{"q": "최대 회전속도는 얼마야?", "sql": "SELECT MAX(rpm) FROM machining"}
+{"q": "공구 마모 시간의 최솟값은?", "sql": "SELECT MIN(tool_wear_min) FROM machining"}
+{"q": "등급별 평균 공정온도", "sql": "SELECT product_type, AVG(process_temp_k) FROM machining GROUP BY product_type"}
+{"q": "H 등급 제품의 고장 건수는?", "sql": "SELECT COUNT(*) FROM machining WHERE product_type = 'H' AND machine_failure = 1"}
+{"q": "L 타입의 평균 토크", "sql": "SELECT AVG(torque_nm) FROM machining WHERE product_type = 'L'"}
+{"q": "고장 난 설비의 평균 공구마모는?", "sql": "SELECT AVG(tool_wear_min) FROM machining WHERE machine_failure = 1"}
+{"q": "고장이 없는 경우 평균 회전속도는?", "sql": "SELECT AVG(rpm) FROM machining WHERE machine_failure = 0"}
+{"q": "토크가 60 이상인 건수는?", "sql": "SELECT COUNT(*) FROM machining WHERE torque_nm >= 60"}
+{"q": "공구마모가 200분 이상일 때 고장률은?", "sql": "SELECT AVG(machine_failure) FROM machining WHERE tool_wear_min >= 200"}
+{"q": "회전속도 1400 미만에서 고장 건수", "sql": "SELECT COUNT(*) FROM machining WHERE rpm < 1400 AND machine_failure = 1"}
+{"q": "고장 유형별 건수를 알려줘", "sql": "SELECT SUM(twf), SUM(hdf), SUM(pwf), SUM(osf), SUM(rnf) FROM machining"}
+{"q": "과부하 고장은 몇 건이야?", "sql": "SELECT COUNT(*) FROM machining WHERE osf = 1"}
+{"q": "방열 고장 건수는?", "sql": "SELECT COUNT(*) FROM machining WHERE hdf = 1"}
+{"q": "등급별 과부하 고장 건수", "sql": "SELECT product_type, SUM(osf) FROM machining GROUP BY product_type"}
+{"q": "토크가 가장 높은 5건 보여줘", "sql": "SELECT * FROM machining ORDER BY torque_nm DESC LIMIT 5"}
+{"q": "공구 마모가 가장 큰 상위 3개", "sql": "SELECT * FROM machining ORDER BY tool_wear_min DESC LIMIT 3"}
+{"q": "M 등급에서 토크 50 초과인 건의 고장률", "sql": "SELECT AVG(machine_failure) FROM machining WHERE product_type = 'M' AND torque_nm > 50"}
+{"q": "전력 고장이 난 경우 평균 토크", "sql": "SELECT AVG(torque_nm) FROM machining WHERE pwf = 1"}
+{"q": "공기온도 평균과 공정온도 평균", "sql": "SELECT AVG(air_temp_k), AVG(process_temp_k) FROM machining"}

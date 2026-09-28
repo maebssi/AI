@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>맵씨 스마트공장 운영 지원</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --mute:#667085; --line:#e4e7ec;
+          --s0:#2e7d32; --s1:#b58900; --s2:#e8590c; --s3:#c92a2a; --accent:#3b5bdb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.5 "Pretendard","Malgun Gothic",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:14px 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:17px; }
+  header p { margin:2px 0 0; color:var(--mute); font-size:12px; }
+  main { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:16px; padding:16px 20px; max-width:1400px; margin:auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding:12px 16px; } }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; min-width:0; }
+  h2 { font-size:14px; margin:0 0 10px; }
+  select, input[type=text], textarea { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  button { padding:7px 12px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:6px; cursor:pointer; font:inherit; }
+  button.ghost { background:#fff; color:var(--accent); }
+  button.danger { background:#fff; color:var(--s3); border-color:var(--s3); }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0; }
+  .badge { display:inline-block; padding:2px 10px; border-radius:99px; color:#fff; font-weight:600; }
+  .s0{background:var(--s0)} .s1{background:var(--s1)} .s2{background:var(--s2)} .s3{background:var(--s3)}
+  .bars { display:grid; grid-template-columns: 40px 1fr 44px; gap:4px 8px; align-items:center; font-size:12px; }
+  .bar { height:8px; border-radius:4px; background:var(--line); overflow:hidden; }
+  .bar > i { display:block; height:100%; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td, th { border-bottom:1px solid var(--line); padding:4px 6px; text-align:left; }
+  pre { white-space:pre-wrap; word-break:break-word; background:#f8f9fb; border:1px solid var(--line); border-radius:6px; padding:10px; font-size:12px; max-height:420px; overflow:auto; }
+  .mute { color:var(--mute); font-size:12px; }
+  .trace li { margin-bottom:4px; }
+  .full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>맵씨 · 제조 Agentic AI 스마트공장 운영 지원 (시연)</h1>
+  <p>AI허브 이송장치 열화 데이터 Validation 세션(학습에 없는 17·18호기)을 실시간 스트림처럼 재생합니다.</p>
+</header>
+<main>
+  <section>
+    <h2>① 설비 상태 에이전트</h2>
+    <select id="session"></select>
+    <div class="row">
+      <input id="upto" type="range" min="10" max="361" value="60" style="flex:1">
+      <span id="uptoLabel" class="mute"></span>
+    </div>
+    <div class="row"><button id="btnAssess">위험도 판정</button><button class="ghost" id="btnPlay">▶ 재생</button></div>
+    <div id="assess" class="mute">세션과 시점을 고른 뒤 판정하세요.</div>
+  </section>
+
+  <section>
+    <h2>② 이상 대응 오케스트레이터</h2>
+    <div class="row"><button id="btnIncident">현재 시점으로 대응 실행</button></div>
+    <ol id="trace" class="trace mute"></ol>
+    <div id="approval" hidden>
+      <h2>작업지시 초안 — 관리자 승인</h2>
+      <pre id="draft"></pre>
+      <div class="row">
+        <input id="approver" type="text" placeholder="승인자 (P1: 생산관리자,정비파트장)" style="flex:1">
+      </div>
+      <div class="row"><button id="btnApprove">승인·발행</button><button class="danger" id="btnReject">반려</button></div>
+      <div id="decision" class="mute"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>③ 관리자 질의</h2>
+    <div class="row"><input id="q" type="text" placeholder="예) oht17 상태 어때? / 과전류 점검 절차는? / 승인 대기 작업지시" style="flex:1"><button id="btnAsk">질문</button></div>
+    <pre id="answer" class="mute">—</pre>
+  </section>
+
+  <section>
+    <h2>④ 작업지시 · 감사 로그</h2>
+    <div class="row"><button class="ghost" id="btnRefresh">새로고침</button></div>
+    <table id="wos"><thead><tr><th>ID</th><th>제목</th><th>상태</th><th>승인자</th></tr></thead><tbody></tbody></table>
+    <h2 style="margin-top:14px">최근 에이전트·관리자 행동</h2>
+    <table id="audit"><tbody></tbody></table>
+  </section>
+  <section class="full">
+    <h2>⑤ 생산·품질 분석 — 가공 불량 예측 (AI4I 2020)</h2>
+    <div class="row">
+      <label>등급 <select id="pt" style="width:auto"><option>L</option><option>M</option><option>H</option></select></label>
+      <label>공기온도(K) <input id="air" type="text" value="302.0" style="width:80px"></label>
+      <label>공정온도(K) <input id="proc" type="text" value="310.5" style="width:80px"></label>
+      <label>회전속도(rpm) <input id="rpm" type="text" value="1320" style="width:80px"></label>
+      <label>토크(Nm) <input id="torque" type="text" value="55" style="width:80px"></label>
+      <label>공구마모(분) <input id="wear" type="text" value="120" style="width:80px"></label>
+      <button id="btnPredict">예측</button>
+    </div>
+    <div id="predict" class="mute">가공 조건을 넣고 예측하세요. 생산 데이터 조회는 ③ 관리자 질의에서 "등급별 고장률" 처럼 물어볼 수 있습니다.</div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const NAMES = ["정상","관심","경고","위험"];
+let thread = null, playing = null;
+const api = async (path, body) => {
+  const r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+};
+const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+async function loadSessions() {
+  const rows = await api("/equipment/sessions");
+  $("#session").innerHTML = rows.map(r => `<option value="${r.session_id}" data-n="${r.frames}">${r.session_id} · ${r.kind.toUpperCase()} · 최대 라벨 ${NAMES[r.max_state]}</option>`).join("");
+  const firstDanger = rows.find(r => r.max_state === 3);
+  if (firstDanger) $("#session").value = firstDanger.session_id;
+  syncRange();
+}
+function syncRange() {
+  const n = +$("#session").selectedOptions[0].dataset.n;
+  $("#upto").max = n; if (+$("#upto").value > n) $("#upto").value = n;
+  $("#uptoLabel").textContent = `${$("#upto").value} / ${n} 초`;
+}
+async function assess() {
+  const r = await api(`/equipment/assess/${$("#session").value}?upto=${$("#upto").value}`);
+  const bars = NAMES.map((n,i) => `<span>${n}</span><div class="bar"><i class="s${i}" style="width:${(r.probabilities[n]*100).toFixed(0)}%"></i></div><span>${(r.probabilities[n]*100).toFixed(0)}%</span>`).join("");
+  const sig = r.top_signals.map(s => `<tr><td>${esc(s.label)}</td><td>${s.value.toFixed(1)}</td><td>${s.normal_median.toFixed(1)}</td></tr>`).join("") || `<tr><td colspan=3 class="mute">정상 범위 초과 신호 없음</td></tr>`;
+  $("#assess").innerHTML = `
+    <div class="row"><span class="badge s${r.state}">${r.state_name}</span>
+      <span class="mute">${esc(r.device_id)} · ${esc(r.timestamp)} · 이상점수 ${r.anomaly_score.toFixed(2)}${r.anomaly_flag ? " (이상)" : ""} · 실제 라벨 ${NAMES[r.ground_truth_state]}</span></div>
+    <div class="bars">${bars}</div>
+    <table style="margin-top:8px"><thead><tr><th>판정 근거 신호</th><th>현재</th><th>정상 중앙값</th></tr></thead><tbody>${sig}</tbody></table>`;
+  return r;
+}
+function renderIncident(r) {
+  $("#trace").innerHTML = (r.trace||[]).map(t => `<li><b>${t.node}</b> — ${esc(t.msg)}</li>`).join("");
+  const p = r.pending_approval;
+  $("#approval").hidden = !p && !r.decision;
+  if (p) {
+    $("#draft").textContent = `${p.draft.title}\n\n${p.draft.body}`;
+    $("#approver").value = p.required_approvers;
+    $("#decision").textContent = r.decision?.error ? `⚠ ${r.decision.error}` : `필요 승인: ${p.required_approvers}`;
+  } else if (r.decision) {
+    $("#decision").textContent = `${r.decision.status}: ${(r.decision.actions||[]).join(", ")}`;
+  }
+  ["#btnApprove","#btnReject"].forEach(b => $(b).disabled = !p);
+}
+async function incident() {
+  $("#trace").innerHTML = "<li>실행 중…</li>";
+  const r = await api("/incidents", {session_id: $("#session").value, upto: +$("#upto").value});
+  thread = r.thread_id; renderIncident(r); refresh();
+}
+async function decide(approve) {
+  const r = await api(`/incidents/${thread}/decision`, {approve, approver: $("#approver").value, note: approve ? "대시보드 승인" : "대시보드 반려"});
+  renderIncident(r); refresh();
+}
+async function ask() {
+  $("#answer").textContent = "…";
+  const r = await api("/ask", {question: $("#q").value});
+  $("#answer").textContent = `[${r.intent}]\n${r.answer}`;
+}
+async function refresh() {
+  const wos = await api("/work-orders");
+  $("#wos tbody").innerHTML = wos.map(w => `<tr><td>${w.wo_id}</td><td>${esc(w.title)}</td><td>${w.status}</td><td>${esc(w.approver)}</td></tr>`).join("") || `<tr><td colspan=4 class="mute">없음</td></tr>`;
+  const logs = await api("/audit-log?limit=12");
+  $("#audit tbody").innerHTML = logs.map(l => `<tr><td class="mute">${l.ts.slice(11)}</td><td>${esc(l.actor)}</td><td>${esc(l.action)}</td></tr>`).join("");
+}
+$("#session").onchange = syncRange;
+$("#upto").oninput = syncRange;
+$("#btnAssess").onclick = () => assess().catch(e => alert(e));
+$("#btnIncident").onclick = () => incident().catch(e => alert(e));
+$("#btnApprove").onclick = () => decide(true).catch(e => alert(e));
+$("#btnReject").onclick = () => decide(false).catch(e => alert(e));
+$("#btnAsk").onclick = () => ask().catch(e => alert(e));
+$("#q").onkeydown = e => { if (e.key === "Enter") $("#btnAsk").click(); };
+$("#btnRefresh").onclick = refresh;
+$("#btnPredict").onclick = async () => {
+  const body = {product_type: $("#pt").value, air_temp_k: +$("#air").value, process_temp_k: +$("#proc").value,
+                rpm: +$("#rpm").value, torque_nm: +$("#torque").value, tool_wear_min: +$("#wear").value};
+  try {
+    const r = await api("/quality/predict", body);
+    const cls = r.risk === "높음" ? "s3" : r.risk === "주의" ? "s1" : "s0";
+    const causes = r.causes.map(c => `<tr><td>${esc(c.label)}</td><td>${c.value.toFixed(1)}</td><td>${c.normal_median.toFixed(1)}</td><td>${(c.prob_drop*100).toFixed(0)}%p</td><td>${esc(c.action)}</td></tr>`).join("");
+    $("#predict").innerHTML = `<div class="row"><span class="badge ${cls}">${r.risk}</span><span>고장 확률 ${(r.failure_probability*100).toFixed(1)}%</span>
+      <span class="mute">출력 ${(r.derived.power_w/1000).toFixed(2)} kW · 온도차 ${r.derived.temp_diff_k.toFixed(1)} K · 마모×토크 ${r.derived.strain.toFixed(0)}</span></div>` +
+      (causes ? `<table><thead><tr><th>원인 변수</th><th>현재</th><th>정상 중앙값</th><th>정상화 시 확률 감소</th><th>권장 조치</th></tr></thead><tbody>${causes}</tbody></table>` : "");
+  } catch (e) { alert(e); }
+};
+$("#btnPlay").onclick = () => {
+  if (playing) { clearInterval(playing); playing = null; $("#btnPlay").textContent = "▶ 재생"; return; }
+  $("#btnPlay").textContent = "■ 정지";
+  playing = setInterval(async () => {
+    const up = $("#upto"); if (+up.value >= +up.max) { $("#btnPlay").click(); return; }
+    up.value = Math.min(+up.max, +up.value + 10); syncRange(); await assess();
+  }, 700);
+};
+loadSessions().then(refresh);
+</script>
+</body>
+</html>
