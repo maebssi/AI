@@ -177,6 +177,11 @@ def decide(wo_id: str, approve: bool, approver: str, note: str = "", edits: dict
         raise PermissionError("P1 작업지시는 '생산관리자,정비파트장' 형태로 2인 승인이 필요합니다")
     now = datetime.now().isoformat(timespec="seconds")
     with session() as con:
+        # Serialize approvals before checking status and reserving current stock.
+        con.execute("BEGIN IMMEDIATE")
+        current = con.execute("SELECT status FROM work_orders WHERE wo_id=?", (wo_id,)).fetchone()
+        if current["status"] != "draft":
+            raise ValueError(f"{wo_id} 는 이미 {current['status']} 상태입니다")
         if edits:
             for k in ("tech_id", "planned_start", "est_hours", "title", "body"):
                 if k in edits:
@@ -194,16 +199,19 @@ def decide(wo_id: str, approve: bool, approver: str, note: str = "", edits: dict
                              (start + timedelta(hours=float(wo["est_hours"]))).isoformat(sep=" "), wo_id))
                 actions.append(f"기술자 {wo['tech_id']} 일정 예약")
             for p in wo["parts"] or []:
+                current = con.execute("SELECT stock FROM parts WHERE part_no=?", (p["part_no"],)).fetchone()
+                stock = max(0, current["stock"]) if current else 0
                 if not p.get("required", True):
-                    if p["stock"] < p["qty"]:
+                    if stock < p["qty"]:
                         actions.append(f"후보 부품 {p['part_no']} 재고 부족 — 점검 후 필요 시 구매")
                     continue
-                take = min(p["qty"], p["stock"])
+                take = min(p["qty"], stock)
                 if take:
                     con.execute("UPDATE parts SET stock=stock-? WHERE part_no=?", (take, p["part_no"]))
                     actions.append(f"{p['part_no']} {take}개 출고 예약")
-                if p["shortage"]:
-                    actions.append(f"{p['part_no']} {p['shortage']}개 긴급 구매 요청")
+                shortage = p["qty"] - take
+                if shortage:
+                    actions.append(f"{p['part_no']} {shortage}개 긴급 구매 요청")
             if wo["priority"] == "P1":
                 con.execute("UPDATE devices SET status='격리' WHERE device_id=?", (wo["device_id"],))
                 actions.append(f"{wo['device_id']} 운행 제외(격리)")
